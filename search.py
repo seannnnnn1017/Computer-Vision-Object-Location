@@ -7,7 +7,7 @@ import pandas as pd
 from selenium.common.exceptions import NoSuchElementException
 import urllib.request
 import os
-
+import time
 
 # Create DataFrame with XPaths
 f = pd.DataFrame(index=range(1200), columns=['xpath', 'src'])
@@ -27,42 +27,41 @@ chrome_options.add_argument('--no-sandbox')
 chrome_path = 'C:/Users/fishd/Desktop/Github/Computer-Vision-Object-Location/chromedriver-win64/chromedriver.exe'
 chrome_service = ChromeService(chrome_path)
 driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+with webdriver.Chrome() as driver:
+    # Get user input for the search term
+    word = input("What are you looking for? ")
+    url = "http://images.google.com/search?q=" + word + "&tbm=isch&sout=1"
+    driver.get(url)
 
-# Get user input for the search term
-word = input("What are you looking for? ")
-url = "http://images.google.com/search?q=" + word + "&tbm=isch&sout=1"
-driver.get(url)
+        
 
-# Scroll down to load more images
-for _ in range(500):
-    driver.execute_script("window.scrollBy(0,10000)")
 
-# Define lambda function to get image src
-def lambd(a):
-    try:
-        image_element = driver.find_element("xpath", a)
-        if image_element.get_attribute("data-src"):
-            return image_element.get_attribute("data-src")
-        elif image_element.get_attribute("src"):
-            return image_element.get_attribute("src")
-        else:
+    # Define lambda function to get image src
+    def lambd(a):
+        try:
+            image_element = driver.find_element("xpath", a)
+            if image_element.get_attribute("data-src"):
+                return image_element.get_attribute("data-src")
+            elif image_element.get_attribute("src"):
+                return image_element.get_attribute("src")
+            else:
+                return None
+        except NoSuchElementException:
             return None
-    except NoSuchElementException:
-        return None
 
-# Apply lambda function to get src values
-f1['src'] = f1['xpath'].apply(lambda x: (lambd(x)))
+    # Apply lambda function to get src values
+    f1['src'] = f1['xpath'].apply(lambda x: (lambd(x)))
 
-f2 = f1.dropna()
+    f2 = f1.dropna()
 
-# Create 'pics' directory
-os.makedirs('pics', exist_ok=True)
+    # Create 'pics' directory
+    os.makedirs('pics', exist_ok=True)
 
-# Download images
-for i in range(len(f2)):
-    urllib.request.urlretrieve(f2.src.iloc[i], 'pics/image' + str(i) + ".jpg")
+    # Download images
+    for i in range(len(f2)):
+        urllib.request.urlretrieve(f2.src.iloc[i], 'pics/image' + str(i) + ".jpg")
 
-# Close the driver
+    # Close the driver
 
-driver.quit()
+    driver.close()
 print('over')

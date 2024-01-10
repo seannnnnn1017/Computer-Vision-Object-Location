@@ -18,7 +18,7 @@ def implot(image, nrows=1, ncols=1, cmap='gray'):
     return fig, ax
     
 images = glob.glob('pics' + '/*.jpg')
-
+x=1
 os.makedirs('labels', exist_ok=True)
 for i in images:
     image = io.imread(i)
@@ -30,6 +30,7 @@ for i in images:
 
     # 使用相對路徑保存輸出
     io.imsave('labels/' + os.path.basename(i)[:-4] + '_segmented.png', segmented_img_uint8)
-
+    print(f'{x}/{len(images)+1}')
+    x+=1
     # Optional: Show the segmented image
     implot(segmented_img)
